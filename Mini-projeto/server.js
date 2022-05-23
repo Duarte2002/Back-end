@@ -23,12 +23,20 @@ var connection = mysql.createConnection({
 
 //parte a
 //exercicio a
+// app = instancia da aplicaçao
+// get/post/delete = metodo http
+// /product/... caminho endpoint 
+// request= pedido   // response = resposta
+
 app.get('/product', function(request,response){
     connection.query("SELECT * FROM product", function (err, rows, fields) {
         response.send(rows);
     }) 
 });
+
 //exercicio b
+// SET = UPDATE DE UMA COLUDA EXPECIFICA 
+//inser = adicionar 
 app.post('/product', function(request,response){
     var product = request.body;
     connection.query("INSERT INTO product SET ? ",[product], function (err, rows, fields) {
@@ -44,11 +52,17 @@ app.get('/product/seller_id', function(request,response){
     }) 
 });
 
+//exercicio D
 
-//exercicio d
+app.put('/product/:id/views', function(request,response){
+    var id = request.params.id;              
+    connection.query("UPDATE product SET views = views + 1 WHERE id = ?",  [id],function(err, rows, fields){
+        response.send("Foi adicionado views ao produto " + id);
+    });
+});
 
-//exercicio e
 
+//exercicio E
 app.get('/product/tags', function(request,response){
     var tagg = request.query.tags;
     connection.query("SELECT * FROM product WHERE tags = ? ",[tagg] ,function (err, rows, fields) {
@@ -56,8 +70,10 @@ app.get('/product/tags', function(request,response){
     })
 });
 
-//Parte b
-//Exericio a
+
+
+//Parte B
+//Exericio A
 app.get('/product/id', function(request,response){
     var id = request.query.id;
     connection.query("SELECT * FROM product WHERE id =?",[id], function (err, rows, fields) {
@@ -69,22 +85,62 @@ app.get('/product/id', function(request,response){
 //exercicio b
 
   app.delete('/product/:id', (request, response) => {
-    var product = "DELETE FROM products WHERE id = ?";
     var id = request.params.id;
-
-        connection.query(product, id, function (err, rows, fields) {
-            if (error) throw error;
+        connection.query("DELETE FROM product WHERE id = ?",[id], function (err, rows, fields) {
+            if (err) throw err;
             response.send("Affected Rows:" + rows.affectedRows);
         }) 
-  });
-
+});
 
 //exercicio c
+app.put('/product/:id/:images', function(request,response){
+    var imagens = request.params.images;
+    var id = request.params.id;
+
+    connection.query("SELECT * FROM product WHERE id = ?",  [id],function(err, rows, fields){
+        var nc = rows[0].images + ";" + imagens;
+        if (err) throw err;
+
+
+        connection.query("UPDATE product SET images = ? WHERE id = ?",  [nc,id],function(err, rows, fields){
+            if (err) throw err;
+
+            connection.query("SELECT * FROM product WHERE id = ?",  [id],function(err, rows, fields){
+                response.send(rows)
+            })
+        })
+    });
+ })
+
 
 //exercicio d
-app.post('/product/id', function(request,response){
-    var comments = request.query.body;
-    connection.query("INSERT INTO product SET ? ",[comments], function (err, rows, fields) {
-        response.send("comments inserted with id:"+ rows.insertId);
-    }) 
-});
+app.put('/product/id', function(request,response){
+    var id = request.query.id;
+    var comentario = request.query.comments;
+
+    connection.query("SELECT * FROM product WHERE id = ?",  [id],function(err, rows, fields){
+        var nc = rows[0].comments + ";" + comentario;
+        if (err) throw err;
+
+
+        connection.query("UPDATE product SET comments = ? WHERE id = ?",  [nc,id],function(err, rows, fields){
+            if (err) throw err;
+
+            connection.query("SELECT * FROM product WHERE id = ?",  [id],function(err, rows, fields){
+                response.send(rows)
+            })
+        })
+    });
+ })
+
+//exercicio e
+
+
+app.get('/product/views', function(req, res){
+    connection.query("SELECT * FROM product", function(err,rows,fields){
+        rows.sort(function(b,a){
+            return b.views - a.views;
+        });
+        res.send(rows);
+    })
+})
